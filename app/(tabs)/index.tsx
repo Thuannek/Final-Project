@@ -1,75 +1,140 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import * as Location from "expo-location";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, Platform, StyleSheet, Text, View } from "react-native";
+// Platform-specific imports
+import { Marker } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const MapView = Platform.select({
+  web: () => require("react-native-web-maps").default,
+  default: () => require("react-native-maps").default,
+})();
 
-export default function HomeScreen() {
+const GOOGLE_MAPS_APIKEY = "";
+
+export default function App() {
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
+  type Toilet = {
+    id: number;
+    latitude: number;
+    longitude: number;
+    tags: { [key: string]: any };
+  };
+
+  const [toilets, setToilets] = useState<Toilet[]>([]);
+  const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission denied", "Location permission is required.");
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc);
+
+      // Query Overpass API for toilets
+      const bbox = `${loc.coords.latitude - 0.01},${
+        loc.coords.longitude - 0.01
+      },${loc.coords.latitude + 0.01},${loc.coords.longitude + 0.01}`;
+      const query = `[out:json];nwr[amenity=toilets](${bbox});out center;`;
+      fetch(
+        `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
+          query
+        )}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          interface OverpassElement {
+            id: number;
+            lat?: number;
+            lon?: number;
+            center?: {
+              lat: number;
+              lon: number;
+            };
+            tags?: { [key: string]: any };
+          }
+
+          interface OverpassResponse {
+            elements: OverpassElement[];
+          }
+
+          const toiletData: Toilet[] = (data as OverpassResponse).elements.map(
+            (element: OverpassElement) => ({
+              id: element.id,
+              latitude: element.lat ?? element.center?.lat ?? 0,
+              longitude: element.lon ?? element.center?.lon ?? 0,
+              tags: element.tags || {},
+            })
+          );
+          setToilets(toiletData);
+        })
+        .catch((error) => console.error("Error fetching toilets:", error));
+    })();
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {location ? (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+          showsUserLocation={true}
+        >
+          {toilets.map((toilet) => (
+            <Marker
+              key={toilet.id}
+              coordinate={{
+                latitude: toilet.latitude,
+                longitude: toilet.longitude,
+              }}
+              title={toilet.tags.name || "Public Toilet"}
+              description={toilet.tags.fee ? `Fee: ${toilet.tags.fee}` : "Free"}
+              onPress={() => setSelectedToilet(toilet)}
+            />
+          ))}
+          {selectedToilet && (
+            <MapViewDirections
+              origin={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }}
+              destination={{
+                latitude: selectedToilet.latitude,
+                longitude: selectedToilet.longitude,
+              }}
+              apikey={GOOGLE_MAPS_APIKEY}
+              strokeWidth={3}
+              strokeColor="blue"
+            />
+          )}
+        </MapView>
+      ) : (
+        <Text>Loading...</Text>
+      )}
+      <Button
+        title="Filter Toilets"
+        onPress={() => Alert.alert("Filter", "Implement filtering UI here.")}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  map: {
+    flex: 1,
   },
 });
