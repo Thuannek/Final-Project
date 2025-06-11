@@ -1,12 +1,10 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Tabs } from "expo-router";
+import React from "react";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { StyleProp } from "react-native";
+import { TabBarBackground } from "@/components/ui/TabBarBackground";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,30 +12,48 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: "#FFFFFF", // blue-500
+        tabBarStyle: {
+          elevation: 5,
+          shadowColor: "#3b82f6",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          position: "relative",
+          height: 70,
+          paddingBottom: 10,
+          backgroundColor: colorScheme === "dark" ? "#1E2A7B" : "#ffffff",
+        },
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Explore",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="map.fill" color={color} />
+          ),
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="saved"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Saved",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="heart.fill" color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="contribute"
+        options={{
+          title: "Contribute",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="plus.circle.fill" color={color} />
+          ),
         }}
       />
     </Tabs>
