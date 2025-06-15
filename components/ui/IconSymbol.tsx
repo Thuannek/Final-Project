@@ -38,6 +38,8 @@ const MAPPING = {
   "gender.separated": "wc",
   "social.distance": "social-distance",
   "close": "close",
+  "direction": "directions",
+  "recenter": "my-location",
 } as IconMapping;
 
 /**

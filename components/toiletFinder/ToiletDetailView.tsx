@@ -1,6 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Image } from "expo-image";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ToiletDetailViewProps {
   onBackToList: () => void;
@@ -15,11 +16,21 @@ export function ToiletDetailView({
     <View className="px-6">
       <TouchableOpacity
         onPress={onBackToList}
-        className="flex-row items-center mb-4"
+        className="flex-row items-center mb-2"
       >
-        <IconSymbol name="chevron.left" size={20} color="#37f" />
-        <Text className="text-blue-500">Back to results</Text>
+        <IconSymbol name="close" size={30} color="#3b82f6" />
       </TouchableOpacity>
+
+      <View className="w-full h-36 rounded-lg mb-6">
+        <Image
+          source={{
+            uri: "https://cdn.imgchest.com/files/4nec8v5jrp4.jpg",
+          }}
+          className="w-full h-full"
+          contentFit="cover"
+          transition={1000}
+        />
+      </View>
 
       <View className="flex-row mb-4">
         <View className="flex-1 justify-center">
@@ -39,62 +50,64 @@ export function ToiletDetailView({
         </View>
       </View>
 
-      <TouchableOpacity className="bg-blue-500 p-3 rounded-lg flex-row justify-center items-center mb-6">
-        <IconSymbol name="location.fill" size={20} color="#fff" />
-        <Text className="text-white font-semibold ml-2">Get Directions</Text>
-      </TouchableOpacity>
-
-      <View className="mb-6">
-        <Text className="font-bold text-lg mb-2">Features</Text>
-        <View className="flex-row flex-wrap gap-2">
-          <View className="flex-row items-center bg-gray-100 py-1 px-3 rounded-full">
-            <IconSymbol name="accessibility" size={14} color="#37f" />
-            <Text className="ml-1 text-sm">Accessible</Text>
-          </View>
-          <View className="flex-row items-center bg-gray-100 py-1 px-3 rounded-full">
-            <IconSymbol name="shower.handheld" size={14} color="#37f" />
-            <Text className="ml-1 text-sm">Bidet</Text>
-          </View>
-          <View className="flex-row items-center bg-gray-100 py-1 px-3 rounded-full">
-            <IconSymbol name="hand.wave" size={14} color="#37f" />
-            <Text className="ml-1 text-sm">Hand Dryer</Text>
-          </View>
-          <View className="flex-row items-center bg-gray-100 py-1 px-3 rounded-full">
-            <IconSymbol name="lock.open" size={14} color="#37f" />
-            <Text className="ml-1 text-sm">No Key Required</Text>
-          </View>
-          <View className="flex-row items-center bg-gray-100 py-1 px-3 rounded-full">
-            <IconSymbol name="sparkles" size={14} color="#37f" />
-            <Text className="ml-1 text-sm">Water Laser</Text>
-          </View>
+      <View className="flex-row w-full justify-between items-center">
+        <View className="basis-8/12 pr-2">
+          <TouchableOpacity className="bg-blue-900 p-3 rounded-lg flex-row justify-center items-center w-full border border-blue-900">
+            <IconSymbol name="direction" size={20} color="#fff" />
+            <Text className="text-white font-semibold ml-2">
+              Get Directions
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View className="basis-2/12">
+          <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-center items-center w-full border border-gray-300">
+            <IconSymbol name="recenter" size={20} color="#37f" />
+          </TouchableOpacity>
+        </View>
+        <View className="basis-2/12 pl-2">
+          <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-center items-center border border-gray-300">
+            <IconSymbol name="heart.fill" size={20} color="#f00" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View className="mb-6">
+      <View className="mt-6">
+        <Text className="font-bold text-lg mb-2">Features</Text>
+        <View className="flex-row flex-wrap gap-2">
+          <Text className="text-sm text-gray-500 bg-gray-200 rounded-full px-2">
+            Accessible
+          </Text>
+          <Text className="text-sm text-gray-500 bg-gray-200 rounded-full px-2">
+            Fee Required
+          </Text>
+          <Text className="text-sm text-gray-500 bg-gray-200 rounded-full px-2">
+            Water Laser
+          </Text>
+        </View>
+      </View>
+
+      <View className="mt-6">
         <Text className="font-bold text-lg mb-2">Operating Hours</Text>
         <Text>Monday - Friday: 8:00 AM - 9:00 PM</Text>
         <Text>Weekends: 10:00 AM - 6:00 PM</Text>
       </View>
 
-      <View>
-        <Text className="font-bold text-lg mb-2">Reviews</Text>
-        <View className="bg-gray-100 p-3 rounded-lg mb-2">
-          <View className="flex-row justify-between items-center mb-1">
-            <Text className="font-semibold">Jane D.</Text>
-            <View className="flex-row">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <IconSymbol
-                  key={star}
-                  name="star.fill"
-                  size={14}
-                  color="#FFD700"
-                />
-              ))}
-            </View>
-          </View>
-          <Text className="text-sm">
-            Very clean and well maintained. Soap and paper towels were stocked.
-          </Text>
+      <View className="mt-6">
+        <Text className="font-bold text-lg mb-2">Service Fees</Text>
+        <Text>1000 VND for peeing</Text>
+        <Text>2000 VND for pooping</Text>
+      </View>
+
+      <View className="flex-row w-full justify-between items-center mt-6">
+        <View className="w-1/2 pr-1">
+          <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-center items-center border border-gray-300">
+            <Text className="font-medium">Report</Text>
+          </TouchableOpacity>
+        </View>
+        <View className="w-1/2 pl-1">
+          <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-center items-center border border-gray-300">
+            <Text className="font-medium">Reviews</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

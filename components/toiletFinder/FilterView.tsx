@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Switch } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { Link } from "expo-router";
 import { FilterOptions, useToiletFilters } from "@/hooks/useToiletFilters";
+import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Switch, Text, TouchableOpacity, View } from "react-native";
 
 interface FilterViewProps {
   onBack: () => void;

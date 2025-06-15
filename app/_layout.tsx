@@ -28,7 +28,7 @@ export default function RootLayout() {
       <AuthProvider>
         <Stack
           screenOptions={{
-            showHeader: false,
+            headerShown: false,
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

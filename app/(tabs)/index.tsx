@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { View, TouchableOpacity, Text, Alert } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { toiletsData } from "../../dummyData/toilet";
 
 // Import custom hooks
 import { useLocation } from "@/hooks/useLocation";
-import { useToiletFilters, FilterOptions } from "@/hooks/useToiletFilters";
+import { FilterOptions, useToiletFilters } from "@/hooks/useToiletFilters";
 import { useToiletSorting } from "@/hooks/useToiletSorting";
 
 // Import components
@@ -14,6 +14,8 @@ import { FilterView } from "@/components/toiletFinder/FilterView";
 import { LoadingView } from "@/components/toiletFinder/LoadingView";
 import { ResultsListView } from "@/components/toiletFinder/ResultsListView";
 import { ToiletDetailView } from "@/components/toiletFinder/ToiletDetailView";
+
+import MapViewDirections from "react-native-maps-directions";
 
 // View state types
 type ViewState = "FILTER" | "LOADING" | "RESULTS" | "DETAIL";
@@ -195,6 +197,16 @@ export default function HomeScreen() {
             }}
             title={"Your Location"}
             description={"You are here"}
+          />
+
+          <MapViewDirections
+            origin={userLocation}
+            destination={
+              selectedToiletId !== null
+                ? toilets.find((t) => t.id === selectedToiletId)?.coordinates
+                : userLocation
+            }
+            apikey="<YOUR_GOOGLE_MAPS_API_KEY>"
           />
         </MapView>
       </View>
