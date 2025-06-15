@@ -15,8 +15,6 @@ import { LoadingView } from "@/components/toiletFinder/LoadingView";
 import { ResultsListView } from "@/components/toiletFinder/ResultsListView";
 import { ToiletDetailView } from "@/components/toiletFinder/ToiletDetailView";
 
-import MapViewDirections from "react-native-maps-directions";
-
 // View state types
 type ViewState = "FILTER" | "LOADING" | "RESULTS" | "DETAIL";
 
@@ -197,16 +195,6 @@ export default function HomeScreen() {
             }}
             title={"Your Location"}
             description={"You are here"}
-          />
-
-          <MapViewDirections
-            origin={userLocation}
-            destination={
-              selectedToiletId !== null
-                ? toilets.find((t) => t.id === selectedToiletId)?.coordinates
-                : userLocation
-            }
-            apikey="<YOUR_GOOGLE_MAPS_API_KEY>"
           />
         </MapView>
       </View>

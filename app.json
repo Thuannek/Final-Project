@@ -8,6 +8,7 @@
     "scheme": "skibidigo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "networkTimeout": 30000,
     "ios": {
       "supportsTablet": true
     },

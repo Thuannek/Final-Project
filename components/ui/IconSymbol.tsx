@@ -40,6 +40,8 @@ const MAPPING = {
   "close": "close",
   "direction": "directions",
   "recenter": "my-location",
+  "report": "report",
+  "reviews": "rate-review",
 } as IconMapping;
 
 /**

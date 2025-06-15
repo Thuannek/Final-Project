@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { SortOption } from "@/hooks/useToiletSorting";
+import React from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 interface ResultsListViewProps {
   onSelectToilet: (id: number) => void;
@@ -65,7 +65,7 @@ export function ResultsListView({
       </Text>
 
       {/* Toilet list */}
-      <View className="scroll">
+      <ScrollView>
         {toilets.map((toilet) => (
           <TouchableOpacity
             key={toilet.id}
@@ -137,7 +137,7 @@ export function ResultsListView({
             </View>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 }
