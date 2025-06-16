@@ -44,6 +44,7 @@ const MAPPING = {
   "reviews": "rate-review",
   "pencil": "edit",
   "trash": "delete",
+  "person.fill": "person",
 } as IconMapping;
 
 /**

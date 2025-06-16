@@ -3,8 +3,6 @@ import React from "react";
 
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { StyleProp } from "react-native";
-import { TabBarBackground } from "@/components/ui/TabBarBackground";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -53,6 +51,16 @@ export default function TabLayout() {
           title: "Contribute",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name="plus.circle.fill" color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name="person.fill" color={color} />
           ),
         }}
       />

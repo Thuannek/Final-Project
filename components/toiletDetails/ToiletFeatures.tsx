@@ -7,6 +7,13 @@ interface ToiletFeaturesProps {
 }
 
 export const ToiletFeatures: React.FC<ToiletFeaturesProps> = ({ toilet }) => {
+  const formatFeatureText = (feature: string) => {
+    // Handle different feature formats
+    const words = feature.split(/[_\s]+/);
+    return words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
   return (
     <View className="mt-6">
       <Text className="font-bold text-lg mb-2">Features</Text>
@@ -14,17 +21,15 @@ export const ToiletFeatures: React.FC<ToiletFeaturesProps> = ({ toilet }) => {
         {toilet?.features?.map((feature: string) => (
           <Text
             key={feature}
-            className="text-sm text-gray-500 bg-gray-200 rounded-full px-2"
+            className="text-sm text-gray-500 bg-gray-200 rounded-full px-3 py-1"
           >
-            {feature.replace("_", " ")}
+            {formatFeatureText(feature)}
           </Text>
         ))}
-        {toilet?.waterLaser && (
-          <>
-            <Text className="text-sm text-gray-500 bg-gray-200 rounded-full px-2">
-              Water Laser
-            </Text>
-          </>
+        {toilet?.hasFee !== undefined && (
+          <Text className="text-sm text-gray-500 bg-gray-200 rounded-full px-3 py-1">
+            {toilet.hasFee ? "Service Fee Required" : "Free Service"}
+          </Text>
         )}
       </View>
     </View>
