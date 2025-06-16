@@ -1,11 +1,22 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Dimensions, Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { toiletsData } from "../../dummyData/toilet";
+
+import { PanGestureHandler } from "react-native-gesture-handler";
 
 // Import custom hooks
 import { useLocation } from "@/hooks/useLocation";
+import { useMapInteractions } from "@/hooks/useMapInteractions";
 import { FilterOptions, useToiletFilters } from "@/hooks/useToiletFilters";
 import { useToiletSorting } from "@/hooks/useToiletSorting";
 
@@ -18,12 +29,28 @@ import { ToiletDetailView } from "@/components/toiletFinder/ToiletDetailView";
 // View state types
 type ViewState = "FILTER" | "LOADING" | "RESULTS" | "DETAIL";
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const MIN_SHEET_HEIGHT = 350;
+const MAX_SHEET_HEIGHT = 760;
+
 export default function HomeScreen() {
-  const [expanded, setExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>("LOADING");
   const [toilets, setToilets] = useState(toiletsData);
   const [selectedToiletId, setSelectedToiletId] = useState<number | null>(null);
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<MapView>(null) as React.RefObject<MapView>;
+
+  // Animated values for bottom sheet - using positive values for proper positioning
+  const translateY = useSharedValue(SCREEN_HEIGHT - MIN_SHEET_HEIGHT);
+  const lastTranslateY = useSharedValue(SCREEN_HEIGHT - MIN_SHEET_HEIGHT);
+
+  const { centerMapOnLocation } = useMapInteractions(mapRef);
+
+  const handleShowToiletPosition = (coordinates: {
+    latitude: number;
+    longitude: number;
+  }) => {
+    centerMapOnLocation(coordinates);
+  };
 
   // Use custom hooks
   const {
@@ -34,6 +61,26 @@ export default function HomeScreen() {
   const { filterOptions, setFilterOptions, applyFilters } = useToiletFilters();
   const { sortOption, handleSortChange, sortToiletsByDistance } =
     useToiletSorting();
+
+  // Function to expand bottom sheet programmatically
+  const expandBottomSheet = () => {
+    translateY.value = withSpring(SCREEN_HEIGHT - MAX_SHEET_HEIGHT, {
+      damping: 20,
+      stiffness: 90,
+      mass: 0.7,
+    });
+    lastTranslateY.value = SCREEN_HEIGHT - MAX_SHEET_HEIGHT;
+  };
+
+  // Function to collapse bottom sheet programmatically
+  const collapseBottomSheet = () => {
+    translateY.value = withSpring(SCREEN_HEIGHT - MIN_SHEET_HEIGHT, {
+      damping: 20,
+      stiffness: 90,
+      mass: 0.7,
+    });
+    lastTranslateY.value = SCREEN_HEIGHT - MIN_SHEET_HEIGHT;
+  };
 
   // Effect to calculate distances when user location is available
   useEffect(() => {
@@ -49,10 +96,66 @@ export default function HomeScreen() {
       });
 
       setToilets(sortToiletsByDistance(updatedToilets));
-      setCurrentView("RESULTS"); // Show results immediately after getting location
-      setExpanded(true); // Expand the bottom sheet
+      setCurrentView("RESULTS");
+      expandBottomSheet(); // Expand when results are ready
     }
   }, [userLocation]);
+
+  // Handle gesture events for bottom sheet
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: (_, ctx) => {
+      ctx.y = translateY.value;
+    },
+    onActive: (event, ctx) => {
+      // Constrain movement between collapsed and expanded positions
+      translateY.value = Math.max(
+        Math.min(ctx.y + event.translationY, SCREEN_HEIGHT - MIN_SHEET_HEIGHT),
+        SCREEN_HEIGHT - MAX_SHEET_HEIGHT
+      );
+    },
+    onEnd: (event) => {
+      // Calculate midpoint for snapping decision
+      const midPoint =
+        SCREEN_HEIGHT - (MIN_SHEET_HEIGHT + MAX_SHEET_HEIGHT) / 2;
+
+      // Determine whether to snap to collapsed or expanded based on position and velocity
+      const shouldCollapse =
+        translateY.value > midPoint || event.velocityY > 500;
+
+      const finalPosition = shouldCollapse
+        ? SCREEN_HEIGHT - MIN_SHEET_HEIGHT
+        : SCREEN_HEIGHT - MAX_SHEET_HEIGHT;
+
+      translateY.value = withSpring(finalPosition, {
+        damping: 20,
+        stiffness: 90,
+        mass: 0.7,
+      });
+
+      lastTranslateY.value = finalPosition;
+    },
+  });
+
+  // Animated styles for bottom sheet
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: translateY.value }],
+    };
+  });
+
+  // Indicator opacity (gets darker as sheet is pulled up)
+  const indicatorStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      translateY.value,
+      [SCREEN_HEIGHT - MAX_SHEET_HEIGHT, SCREEN_HEIGHT - MIN_SHEET_HEIGHT],
+      [0.8, 0.4],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity,
+    };
+  });
 
   const handleSearch = () => {
     // Check if at least one toilet type and one gender designation is selected
@@ -63,7 +166,6 @@ export default function HomeScreen() {
       filterOptions.genderDesignation.genderSeparated;
 
     if (!hasToiletTypeSelected || !hasGenderDesignationSelected) {
-      // Show alert or feedback that filters are required
       Alert.alert(
         "Filter Selection Required",
         "Please select at least one toilet type and one gender designation."
@@ -98,13 +200,14 @@ export default function HomeScreen() {
       }
 
       setCurrentView("RESULTS");
+      expandBottomSheet();
     }, 1000);
   };
 
   const handleSelectToilet = (toiletId: number) => {
     const selectedToilet = toilets.find((t) => t.id === toiletId);
     setSelectedToiletId(toiletId);
-    setExpanded(false); // Collapse the bottom sheet when showing details
+    collapseBottomSheet(); // Collapse when showing details
 
     // Animate map to the selected toilet position
     if (selectedToilet && mapRef.current) {
@@ -188,32 +291,50 @@ export default function HomeScreen() {
                 </View>
               </Marker>
             ))}
-          <Marker
-            coordinate={{
-              latitude: userLocation?.latitude || 37.78825,
-              longitude: userLocation?.longitude || -122.4324,
-            }}
-            title={"Your Location"}
-            description={"You are here"}
-          />
         </MapView>
       </View>
 
-      <View
-        className={`absolute left-0 right-0 bg-white shadow-lg rounded-t-3xl ${
-          expanded ? "h-[710px] bottom-0" : "h-[350px] bottom-0"
-        }`}
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            backgroundColor: "white",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+            height: MAX_SHEET_HEIGHT,
+          },
+          animatedStyle,
+        ]}
       >
-        {/* Drag Indicator */}
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setExpanded(!expanded)}
-          className="w-full items-center pt-2 pb-4"
-        >
-          <View className="w-16 h-1.5 bg-gray-300 rounded-full"></View>
-        </TouchableOpacity>
+        {/* Drag Indicator - ONLY this area responds to pan gestures */}
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View className="w-full items-center pt-2 pb-4">
+            <Animated.View
+              style={[
+                {
+                  width: 64,
+                  height: 6,
+                  backgroundColor: "#D0D0D0",
+                  borderRadius: 3,
+                },
+                indicatorStyle,
+              ]}
+            />
+          </Animated.View>
+        </PanGestureHandler>
 
-        {/* Content based on current view */}
+        {/* Content based on current view - NO gesture interference */}
         <View className="flex-1">
           {currentView === "FILTER" && (
             <FilterView
@@ -243,10 +364,11 @@ export default function HomeScreen() {
             <ToiletDetailView
               onBackToList={handleBackToList}
               toilet={toilets.find((t) => t.id === selectedToiletId)}
+              onShowPosition={handleShowToiletPosition}
             />
           )}
         </View>
-      </View>
+      </Animated.View>
 
       {/* Find Button (shown only in filter view) */}
       {currentView === "FILTER" && (

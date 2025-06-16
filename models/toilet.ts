@@ -18,6 +18,8 @@ export interface Review {
   userName: string;
   rating: number;
   comment: string;
+  timestamp?: string; // Add timestamp for better sorting
+  userId?: string; // Add userId to identify user's own reviews
 }
 
 export interface Toilet {

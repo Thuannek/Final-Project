@@ -42,6 +42,8 @@ const MAPPING = {
   "recenter": "my-location",
   "report": "report",
   "reviews": "rate-review",
+  "pencil": "edit",
+  "trash": "delete",
 } as IconMapping;
 
 /**
